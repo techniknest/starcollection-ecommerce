@@ -100,14 +100,14 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               <div className="flex items-center gap-6 pt-2">
                 {hasDiscount ? (
                   <div className="flex items-baseline gap-3">
-                    <span className="text-3xl font-bold text-white">${product.discountPrice}</span>
-                    <span className="text-lg text-gray-500 line-through">${product.price}</span>
+                    <span className="text-3xl font-bold text-white">Rs. {product.discountPrice}</span>
+                    <span className="text-lg text-gray-500 line-through">Rs. {product.price}</span>
                     <span className="text-xs font-bold text-green-500 bg-green-500/10 px-2 py-1 rounded">
                       -{Math.round(((product.price - product.discountPrice!) / product.price) * 100)}%
                     </span>
                   </div>
                 ) : (
-                  <span className="text-3xl font-bold text-white">${product.price}</span>
+                  <span className="text-3xl font-bold text-white">Rs. {product.price}</span>
                 )}
                 <div className="h-6 w-px bg-white/10" />
                 <div className="text-sm text-gray-400">
