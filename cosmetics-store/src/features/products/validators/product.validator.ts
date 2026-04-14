@@ -5,7 +5,7 @@ export const ProductValidator = z
     name: z.string().min(3, "Product name must be at least 3 characters").trim(),
     price: z.number().positive("Price must be greater than 0"),
     category: z.enum(["cosmetics", "jewelry", "perfumes", "home-decor"], {
-      errorMap: () => ({ message: "Invalid category" }),
+      message: "Invalid category",
     }),
     subCategory: z.string().optional(),
     description: z.string().min(10, "Description must be at least 10 characters").trim(),
