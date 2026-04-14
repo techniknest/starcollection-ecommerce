@@ -8,7 +8,10 @@ export async function POST(req: NextRequest) {
     );
 
     // Invalidate refresh token cookie by deleting it
-    response.cookies.delete("refresh_token");
+    response.cookies.delete({
+      name: "refresh_token",
+      path: "/",
+    });
 
     return response;
   } catch (error) {
