@@ -14,20 +14,33 @@ import { Loader2, AlertCircle } from "lucide-react";
 
 export default function HomePage() {
   const [allProducts, setAllProducts] = useState<any[]>([]);
+  const [promotions, setPromotions] = useState<any[]>([]);
+  const [dbCategories, setDbCategories] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function fetchProducts() {
+    async function fetchData() {
       try {
         setIsLoading(true);
-        const res = await fetch("/api/products");
-        const data = await res.json();
+        const [prodRes, promoRes, catRes] = await Promise.all([
+          fetch("/api/products"),
+          fetch("/api/promotions"),
+          fetch("/api/categories")
+        ]);
         
-        if (data.success) {
-          setAllProducts(data.data);
-        } else {
-          setError(data.message || "Failed to load catalog");
+        const prodData = await prodRes.json();
+        const promoData = await promoRes.json();
+        const catData = await catRes.json();
+        
+        if (prodData.success) {
+          setAllProducts(prodData.data);
+        }
+        if (promoData.success) {
+          setPromotions(promoData.data);
+        }
+        if (Array.isArray(catData)) {
+          setDbCategories(catData);
         }
       } catch (err) {
         console.error("Home Data Fetch Error:", err);
@@ -37,7 +50,7 @@ export default function HomePage() {
       }
     }
 
-    fetchProducts();
+    fetchData();
   }, []);
 
   if (isLoading) {
@@ -75,13 +88,13 @@ export default function HomePage() {
         <CategorySection />
         
         {/* Featured Selection */}
-        <FeaturedProducts allProducts={allProducts} />
+        <FeaturedProducts allProducts={allProducts} promotions={promotions} />
         
         {/* Why Us Trust Points */}
         <WhyChooseUs />
 
         {/* Full Catalog with Search & Filter Logic */}
-        <AllProducts allProducts={allProducts} />
+        <AllProducts allProducts={allProducts} promotions={promotions} dbCategories={dbCategories} />
 
         {/* Brand/Owner Vision */}
         <AboutSection />

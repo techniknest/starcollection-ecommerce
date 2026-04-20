@@ -4,7 +4,6 @@ import {
   Package, 
   Plus, 
   Edit3, 
-  BarChart3, 
   Search,
   ArrowRight,
   Sparkles
@@ -14,36 +13,28 @@ import Link from "next/link";
 export default function ProductsHubPage() {
   const modules = [
     {
-      name: "View Products",
-      description: "Manage your entire catalog, search for specific items, and handle deletions.",
+      name: "View Catalog",
+      description: "Explore your digital gallery, search for specific pieces, and handle curation.",
       icon: Search,
       href: "/admin/products/view",
       color: "bg-blue-500",
-      count: "Active List"
+      count: "Exhibition"
     },
     {
-      name: "Add Product",
-      description: "Launch new items into your store with full details, images, and categories.",
+      name: "New Masterpiece",
+      description: "Launch new items into your gallery with full stories, imagery, and classification.",
       icon: Plus,
       href: "/admin/products/new",
       color: "bg-green-500",
-      count: "New Entry"
+      count: "Curate"
     },
     {
-      name: "Edit Selection",
-      description: "Modify existing product details, update pricing, or change visibility.",
+      name: "Refine Details",
+      description: "Modify existing descriptions, update the aesthetic pricing, or adjust visibility.",
       icon: Edit3,
       href: "/admin/products/edit",
       color: "bg-gold",
-      count: "Bulk Update"
-    },
-    {
-      name: "Inventory",
-      description: "Monitor stock levels, set low-stock alerts, and manage supply chain.",
-      icon: BarChart3,
-      href: "/admin/products/inventory",
-      color: "bg-purple-500",
-      count: "Stock Management"
+      count: "Refine"
     }
   ];
 
@@ -54,13 +45,13 @@ export default function ProductsHubPage() {
           <Sparkles className="w-3 h-3" />
           Product System
         </div>
-        <h1 className="text-4xl lg:text-5xl font-bold tracking-tight">Products Hub</h1>
+        <h1 className="text-4xl lg:text-5xl font-bold tracking-tight">Collection Hub</h1>
         <p className="text-gray-400 max-w-2xl text-lg font-light leading-relaxed">
-          The central Command Center for your store's inventory. Select a module below to begin managing your catalog.
+          The central Command Center for your digital gallery. Select a module below to begin managing your collection.
         </p>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {modules.map((module) => (
           <Link
             key={module.name}
@@ -73,7 +64,7 @@ export default function ProductsHubPage() {
             <div className="relative z-10 flex flex-col h-full">
               <div className="flex justify-between items-start mb-8">
                 <div className={`w-16 h-16 ${module.color}/10 rounded-2xl flex items-center justify-center text-white group-hover:scale-110 transition-transform duration-500`}>
-                  <module.icon className={`w-8 h-8 ${module.name === 'Edit Selection' ? 'text-gold' : ''}`} />
+                  <module.icon className={`w-8 h-8 ${module.name === 'Refine Details' ? 'text-gold' : ''}`} />
                 </div>
                 <div className="px-3 py-1 rounded-full bg-white/5 border border-white/5 text-[8px] font-bold text-gray-400 uppercase tracking-[0.2em]">
                   {module.count}
@@ -94,7 +85,6 @@ export default function ProductsHubPage() {
         ))}
       </div>
 
-      {/* Quick Tips or Analytics mini-row */}
       <footer className="pt-12 border-t border-white/5 flex flex-wrap gap-12">
         <div className="flex items-center gap-4">
           <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />

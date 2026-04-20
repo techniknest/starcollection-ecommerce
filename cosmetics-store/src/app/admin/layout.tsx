@@ -10,7 +10,10 @@ import {
   Users, 
   Settings, 
   LogOut,
-  ChevronRight
+  ChevronRight,
+  MessageSquare,
+  Layers,
+  Tag
 } from "lucide-react";
 
 export default function AdminLayout({
@@ -23,9 +26,11 @@ export default function AdminLayout({
 
   const navItems = [
     { name: "Dashboard", icon: LayoutDashboard, href: "/admin" },
-    { name: "Products", icon: Package, href: "/admin/products" },
-    { name: "Customers", icon: Users, href: "#" },
-    { name: "Settings", icon: Settings, href: "#" },
+    { name: "Our Collection", icon: Package, href: "/admin/products" },
+    { name: "Categories", icon: Layers, href: "/admin/categories" },
+    { name: "Promotions", icon: Tag, href: "/admin/promotions" },
+    { name: "Reviews", icon: MessageSquare, href: "/admin/reviews" },
+    { name: "Settings", icon: Settings, href: "/admin/settings" },
   ];
 
   const isActive = (href: string) => {

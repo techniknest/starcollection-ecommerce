@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { productService } from "@/features/products/services/product.service";
 import mongoose from "mongoose";
+import { withAdminAuth } from "@/middleware/auth.middleware";
 
 export async function GET(
   req: NextRequest,
@@ -68,4 +69,47 @@ export async function DELETE(
       { status: 500 }
     );
   }
+}
+
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  return withAdminAuth(req, async (req) => {
+    try {
+      const { id } = await params;
+      const body = await req.json();
+
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        return NextResponse.json(
+          { success: false, message: "Invalid product ID format" },
+          { status: 400 }
+        );
+      }
+
+      // 1. Find product
+      const product = await productService.getProductById(id);
+      if (!product) {
+        return NextResponse.json(
+          { success: false, message: "Product not found" },
+          { status: 404 }
+        );
+      }
+
+      // 2. Update record
+      const updatedProduct = await productService.updateProduct(id, body);
+
+      return NextResponse.json({
+        success: true,
+        message: "Product updated successfully",
+        data: updatedProduct,
+      });
+    } catch (error: any) {
+      console.error("PUT Product Error:", error);
+      return NextResponse.json(
+        { success: false, message: error.message || "Server error while updating product" },
+        { status: 500 }
+      );
+    }
+  });
 }

@@ -124,14 +124,8 @@ export default function LoginPage() {
           </div>
         </form>
 
-        <p className="mt-8 text-center text-sm text-gray-400 animate-in fade-in duration-700 delay-300">
-          Don't have an account?{" "}
-          <Link
-            href="/register"
-            className="text-gold hover:text-yellow-400 font-medium transition-colors cursor-pointer"
-          >
-            Create an account
-          </Link>
+        <p className="mt-8 text-center text-sm text-gray-500 animate-in fade-in duration-700 delay-300">
+          STARS COLLECTION • LUXURY REDEFINED
         </p>
       </div>
     </div>

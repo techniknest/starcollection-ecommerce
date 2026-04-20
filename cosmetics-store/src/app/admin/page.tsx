@@ -1,69 +1,147 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useAuth } from "@/features/auth/hooks/use-auth";
-import { Package, ShoppingBag, Users, TrendingUp } from "lucide-react";
+import { Package, Layers, MessageSquare, Sparkles, Loader2 } from "lucide-react";
 
 export default function AdminDashboard() {
-  const { user } = useAuth();
+  const { user, accessToken, refreshAccessToken } = useAuth();
+  const [stats, setStats] = useState({
+    products: 0,
+    categories: 0,
+    reviews: 0,
+    promotions: 0
+  });
+  const [recentProducts, setRecentProducts] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchDashboardData() {
+      const performFetch = async (url: string, token: string | null) => {
+        return fetch(url, { headers: { "Authorization": `Bearer ${token}` } });
+      };
+
+      try {
+        let statsRes = await performFetch("/api/admin/stats", accessToken);
+        let productsRes = await performFetch("/api/products", accessToken);
+
+        if (statsRes.status === 401 || productsRes.status === 401) {
+          const newToken = await refreshAccessToken();
+          if (newToken) {
+            statsRes = await performFetch("/api/admin/stats", newToken);
+            productsRes = await performFetch("/api/products", newToken);
+          }
+        }
+
+        const statsJson = await statsRes.json();
+        const productsJson = await productsRes.json();
+
+        if (statsJson.success) setStats(statsJson.data);
+        if (productsJson.success) setRecentProducts(productsJson.data.slice(0, 5));
+
+      } catch (err) {
+        console.error("Dashboard Data Sync Error:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    if (accessToken) fetchDashboardData();
+  }, [accessToken, refreshAccessToken]);
+
+  const cards = [
+    { label: "Total Showcase Items", value: stats.products, icon: Package, color: "text-gold" },
+    { label: "Curated Collections", value: stats.categories, icon: Layers, color: "text-blue-400" },
+    { label: "Client Stories", value: stats.reviews, icon: MessageSquare, color: "text-green-400" },
+    { label: "Active Promotions", value: stats.promotions, icon: Sparkles, color: "text-purple-400" },
+  ];
 
   return (
-    <div className="p-12 space-y-12">
-      <header className="flex justify-between items-end">
+    <div className="p-8 lg:p-12 space-y-12">
+      <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
         <div className="space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight">System Overview</h1>
+          <div className="flex items-center gap-3">
+             <h1 className="text-4xl font-bold tracking-tight heading-luxury uppercase">Showcase Overview</h1>
+             <div className="px-3 py-1 bg-gold/10 border border-gold/20 text-gold text-[10px] font-black rounded-full uppercase tracking-widest animate-pulse">
+               Live Exhibition
+             </div>
+          </div>
           <p className="text-gray-400 font-light text-lg">
-            Welcome back, <span className="text-white font-medium">{user?.name}</span>. Admin privileges active.
+            Welcome back, <span className="text-white font-medium">{user?.name}</span>. Management mode active.
           </p>
-        </div>
-        <div className="px-5 py-2.5 bg-green-500/10 border border-green-500/20 text-green-400 text-xs font-bold rounded-full flex items-center gap-2.5 shadow-lg shadow-green-500/5">
-          <span className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />
-          SYSTEM ONLINE
         </div>
       </header>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {[
-          { label: "Total Revenue", value: "$45,231.89", trend: "+20.1%", icon: TrendingUp },
-          { label: "Active Orders", value: "234", trend: "+15.5%", icon: ShoppingBag },
-          { label: "Total Users", value: "1,202", trend: "+12.2%", icon: Users },
-          { label: "Stock Units", value: "8,921", trend: "-5.4%", icon: Package },
-        ].map((stat) => (
-          <div key={stat.label} className="p-8 bg-surface/30 border border-white/5 rounded-[2.5rem] relative overflow-hidden group hover:bg-surface/40 transition-all duration-500">
-            <div className="absolute top-0 right-0 p-8 opacity-5 transition-transform group-hover:scale-110">
+        {cards.map((stat) => (
+          <div key={stat.label} className="p-8 bg-surface/30 border border-white/5 rounded-[2.5rem] relative overflow-hidden group hover:bg-surface/40 transition-all duration-500 shadow-xl shadow-black/20">
+            <div className={`absolute top-0 right-0 p-8 opacity-5 transition-transform group-hover:scale-110 ${stat.color}`}>
               <stat.icon className="w-20 h-20" />
             </div>
-            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em] mb-4">{stat.label}</p>
+            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em] mb-4">{stat.label}</p>
             <div className="flex justify-between items-end relative z-10">
-              <p className="text-3xl font-bold tracking-tight">{stat.value}</p>
-              <span className={`text-xs font-bold px-2 py-1 rounded-lg ${
-                stat.trend.startsWith('+') 
-                  ? 'text-green-400 bg-green-400/5' 
-                  : 'text-red-400 bg-red-400/5'
-              }`}>
-                {stat.trend}
-              </span>
+              {isLoading ? (
+                <Loader2 className="w-6 h-6 animate-spin text-gold" />
+              ) : (
+                <p className="text-4xl font-black tracking-tight text-white">{stat.value}</p>
+              )}
+              <div className={`p-2 rounded-xl bg-white/5 ${stat.color} shadow-inner`}>
+                <stat.icon className="w-5 h-5" />
+              </div>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Welcome Hero */}
-      <div className="p-16 border border-white/5 bg-white/[0.02] rounded-[4rem] text-center space-y-6 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-tr from-gold/5 via-transparent to-transparent pointer-events-none" />
-        
-        <div className="w-24 h-24 bg-gold/10 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-inner shadow-gold/20">
-          <Package className="w-12 h-12 text-gold" />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Recent Items List */}
+        <div className="lg:col-span-2 bg-surface/20 border border-white/5 rounded-[3rem] p-8 space-y-8 shadow-2xl">
+           <div className="flex items-center justify-between px-2">
+              <h3 className="text-xl font-bold heading-luxury tracking-wider text-white">Recent Masterpieces</h3>
+              <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Global Catalog Connection</p>
+           </div>
+
+           <div className="space-y-4">
+              {isLoading ? (
+                Array(3).fill(0).map((_, i) => (
+                  <div key={i} className="h-20 bg-white/5 rounded-2xl animate-pulse" />
+                ))
+              ) : recentProducts.length > 0 ? (
+                recentProducts.map(product => (
+                  <div key={product._id} className="flex items-center justify-between p-4 bg-white/[0.03] border border-white/5 rounded-2xl group hover:bg-white/[0.07] transition-all">
+                     <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl overflow-hidden bg-surface-light border border-white/10 shrink-0">
+                           <img src={product.images[0]} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                        </div>
+                        <div>
+                           <p className="font-bold text-white group-hover:text-gold transition-colors">{product.name}</p>
+                           <p className="text-[10px] uppercase font-bold text-gray-500 tracking-widest">{product.category}</p>
+                        </div>
+                     </div>
+                     <p className="font-bold text-gold text-sm tracking-tighter">RS. {product.price.toLocaleString()}</p>
+                  </div>
+                ))
+              ) : (
+                <p className="py-20 text-center text-gray-500 italic">No products found in the live exhibition.</p>
+              )}
+           </div>
         </div>
-        <h2 className="text-3xl font-bold tracking-tight">Admin Hub Configuration</h2>
-        <p className="text-gray-400 max-w-xl mx-auto leading-relaxed text-lg font-light">
-          This dashboard is synchronized with your environment variables. You can now manage products, view analytics, and oversee your store's operations securely.
-        </p>
-        
-        <div className="pt-8 flex items-center justify-center gap-4">
-          <div className="h-px w-12 bg-white/10" />
-          <span className="text-[10px] uppercase font-bold tracking-[0.3em] text-gray-600">Secure Access Verified</span>
-          <div className="h-px w-12 bg-white/10" />
+
+        {/* Gallery Status */}
+        <div className="bg-gold/[0.02] border border-gold/10 rounded-[3rem] p-10 flex flex-col justify-center items-center text-center space-y-6 shadow-2xl shadow-gold/5">
+           <div className="w-20 h-20 bg-gold/10 rounded-3xl flex items-center justify-center shadow-lg shadow-gold/10">
+              <Sparkles className="w-10 h-10 text-gold" />
+           </div>
+           <div className="space-y-3">
+              <h4 className="text-xl font-bold heading-luxury uppercase text-white">Luxury Overview</h4>
+              <p className="text-sm text-gray-400 font-light leading-relaxed">
+                Your showcase is fully synchronized with the Cloudinary gallery and MongoDB architecture.
+              </p>
+           </div>
+           <div className="pt-6 border-t border-white/5 w-full">
+              <p className="text-[10px] uppercase font-black tracking-widest text-gold opacity-50">Authorized Management</p>
+           </div>
         </div>
       </div>
     </div>

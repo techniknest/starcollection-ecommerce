@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { 
@@ -22,7 +22,7 @@ import Link from "next/link";
 
 export default function AddProductPage() {
   const router = useRouter();
-  const { accessToken } = useAuth();
+  const { accessToken, refreshAccessToken } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [isLoading, setIsLoading] = useState(false);
@@ -33,13 +33,29 @@ export default function AddProductPage() {
   const [formData, setFormData] = useState({
     name: "",
     price: "",
-    category: "cosmetics",
-    stock: "",
+    category: "", // Removed hardcoded 'cosmetics'
     brand: "",
     description: "",
     discountPrice: "",
     isFeatured: false,
   });
+
+  const [dbCategories, setDbCategories] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch("/api/categories")
+      .then(res => res.json())
+      .then(data => {
+         if (Array.isArray(data)) {
+           setDbCategories(data);
+           // Auto-select first category if none selected
+           if (data.length > 0 && !formData.category) {
+             setFormData(prev => ({ ...prev, category: data[0].name }));
+           }
+         }
+      })
+      .catch(console.error);
+  }, []);
 
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -70,21 +86,38 @@ export default function AddProductPage() {
     }
   };
 
-  const uploadImage = async (file: File) => {
-    const formData = new FormData();
-    formData.append("file", file);
+  const uploadImage = async (file: File): Promise<string> => {
+    const data = new FormData();
+    data.append("file", file);
 
-    const res = await fetch("/api/upload", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${accessToken}`,
-      },
-      body: formData,
-    });
+    let currentToken = accessToken;
 
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || "Upload failed");
-    return data.url;
+    const performUpload = async (token: string | null) => {
+      return fetch("/api/upload", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+        body: data,
+      });
+    };
+
+    let res = await performUpload(currentToken);
+
+    // If unauthorized, attempt to refresh and retry once
+    if (res.status === 401) {
+      console.warn("Upload service: Access token expired. Attempting refresh...");
+      const newToken = await refreshAccessToken();
+      if (newToken) {
+        res = await performUpload(newToken);
+      }
+    }
+
+    const json = await res.json();
+    if (!res.ok) {
+      throw new Error(json.message || "Upload failed (Unauthorized or Server Error)");
+    }
+    return json.url;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -118,22 +151,30 @@ export default function AddProductPage() {
       setIsUploading(false);
 
       // 2. Create Product
-      const productBody = {
-        ...formData,
-        price: Number(formData.price),
-        stock: Number(formData.stock),
-        discountPrice: formData.discountPrice ? Number(formData.discountPrice) : undefined,
-        images: [uploadedUrl],
+      const performCreate = async (token: string | null) => {
+        const productBody = {
+          ...formData,
+          price: Number(formData.price),
+          stock: 99, // Static default for showcase consistency
+          discountPrice: formData.discountPrice ? Number(formData.discountPrice) : undefined,
+          images: [uploadedUrl],
+        };
+
+        return fetch("/api/products", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+          body: JSON.stringify(productBody),
+        });
       };
 
-      const res = await fetch("/api/products", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify(productBody),
-      });
+      let res = await performCreate(accessToken);
+      if (res.status === 401) {
+        const newToken = await refreshAccessToken();
+        if (newToken) res = await performCreate(newToken);
+      }
 
       const data = await res.json();
 
@@ -286,34 +327,20 @@ export default function AddProductPage() {
             <section className="bg-surface/20 border border-white/5 rounded-[2.5rem] p-8 space-y-6">
               <div className="flex items-center gap-3 mb-2">
                 <DollarSign className="w-5 h-5 text-gold" />
-                <h3 className="text-lg font-bold">Pricing & Stock</h3>
+                <h3 className="text-lg font-bold">Aesthetic Pricing</h3>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] uppercase font-bold tracking-widest text-gray-500 ml-1">Base Price (PKR)</label>
-                  <input
-                    required
-                    type="number"
-                    name="price"
-                    value={formData.price}
-                    onChange={handleChange}
-                    className="w-full bg-dark/50 border border-white/10 rounded-2xl px-5 py-3.5 text-white focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/30 transition-all"
-                    placeholder="e.g. 2500"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] uppercase font-bold tracking-widest text-gray-500 ml-1">Stock Units</label>
-                  <input
-                    required
-                    type="number"
-                    name="stock"
-                    value={formData.stock}
-                    onChange={handleChange}
-                    className="w-full bg-dark/50 border border-white/10 rounded-2xl px-5 py-3.5 text-white focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/30 transition-all"
-                    placeholder="0"
-                  />
-                </div>
+              <div className="space-y-1.5">
+                <label className="text-[10px] uppercase font-bold tracking-widest text-gray-500 ml-1">Exhibition Price (PKR)</label>
+                <input
+                  required
+                  type="number"
+                  name="price"
+                  value={formData.price}
+                  onChange={handleChange}
+                  className="w-full bg-dark/50 border border-white/10 rounded-2xl px-5 py-3.5 text-white focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/30 transition-all"
+                  placeholder="e.g. 2500"
+                />
               </div>
 
               <div className="space-y-1.5">
@@ -343,10 +370,10 @@ export default function AddProductPage() {
                   onChange={handleChange}
                   className="w-full bg-dark/50 border border-white/10 rounded-2xl px-5 py-3.5 text-white focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/30 transition-all appearance-none"
                 >
-                  <option value="cosmetics">Cosmetics</option>
-                  <option value="jewelry">Jewelry</option>
-                  <option value="perfumes">Perfumes</option>
-                  <option value="home-decor">Home Decor</option>
+                  <option value="" disabled>Select a structural category</option>
+                  {dbCategories.map(cat => (
+                    <option key={cat._id} value={cat.name}>{cat.name}</option>
+                  ))}
                 </select>
               </div>
 

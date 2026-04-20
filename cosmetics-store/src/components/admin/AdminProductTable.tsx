@@ -17,8 +17,7 @@ export default function AdminProductTable({ products, onDelete }: AdminProductTa
             <th className="px-6 py-4">Product</th>
             <th className="px-6 py-4">Category</th>
             <th className="px-6 py-4">Price</th>
-            <th className="px-6 py-4">Stock</th>
-            <th className="px-6 py-4">Featured</th>
+            <th className="px-6 py-4 text-center">Featured</th>
             <th className="px-6 py-4 text-right">Actions</th>
           </tr>
         </thead>
@@ -41,40 +40,32 @@ export default function AdminProductTable({ products, onDelete }: AdminProductTa
                 </div>
               </td>
               <td className="px-6 py-4">
-                <span className="text-xs text-gray-400 font-medium capitalize">
-                  {product.category.replace("-", " ")}
+                <span className="text-xs text-gray-400 font-bold uppercase tracking-tight">
+                  {product.category}
                 </span>
               </td>
               <td className="px-6 py-4">
                 <div className="flex flex-col">
                   {product.discountPrice ? (
                     <>
-                      <span className="text-sm font-bold text-white">${product.discountPrice}</span>
-                      <span className="text-[10px] text-gray-500 line-through">${product.price}</span>
+                      <span className="text-sm font-bold text-white">Rs. {product.discountPrice}</span>
+                      <span className="text-[10px] text-gray-500 line-through">Rs. {product.price}</span>
                     </>
                   ) : (
-                    <span className="text-sm font-bold text-white">${product.price}</span>
+                    <span className="text-sm font-bold text-white">Rs. {product.price}</span>
                   )}
                 </div>
               </td>
               <td className="px-6 py-4">
-                <div className="flex items-center gap-2">
-                  <span className={`text-sm font-bold ${product.stock < 10 ? 'text-red-400' : 'text-white'}`}>
-                    {product.stock}
-                  </span>
-                  {product.stock < 10 && (
-                    <AlertCircle className="w-3.5 h-3.5 text-red-500" />
+                <div className="flex justify-center">
+                  {product.isFeatured ? (
+                    <div className="w-6 h-6 rounded-full bg-gold/10 flex items-center justify-center">
+                      <Star className="w-3.5 h-3.5 text-gold fill-current" />
+                    </div>
+                  ) : (
+                    <span className="text-gray-600">-</span>
                   )}
                 </div>
-              </td>
-              <td className="px-6 py-4">
-                {product.isFeatured ? (
-                  <div className="w-6 h-6 rounded-full bg-gold/10 flex items-center justify-center">
-                    <Star className="w-3.5 h-3.5 text-gold fill-current" />
-                  </div>
-                ) : (
-                  <span className="text-gray-600">-</span>
-                )}
               </td>
               <td className="px-6 py-4 text-right">
                 <div className="flex items-center justify-end gap-2">
@@ -87,7 +78,7 @@ export default function AdminProductTable({ products, onDelete }: AdminProductTa
                     <Eye className="w-4 h-4" />
                   </Link>
                   <Link
-                    href={`/admin/products/${product._id}/edit`}
+                    href={`/admin/products/edit/${product._id}`}
                     className="p-2 text-gray-400 hover:text-gold hover:bg-gold/5 rounded-lg transition-all"
                     title="Edit Product"
                   >

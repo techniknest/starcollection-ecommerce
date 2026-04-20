@@ -38,6 +38,24 @@ class ProductService {
     await connectToDatabase();
     return Product.find({ isFeatured: true }).sort({ createdAt: -1 });
   }
+
+  async updateProduct(id: string, data: Partial<ProductInput>) {
+    await connectToDatabase();
+
+    // If name is being changed, check for duplicates
+    if (data.name) {
+      const existingProduct = await Product.findOne({
+        _id: { $ne: id },
+        name: { $regex: new RegExp(`^${data.name}$`, "i") },
+      });
+
+      if (existingProduct) {
+        throw new Error(`Product with name "${data.name}" already exists`);
+      }
+    }
+
+    return Product.findByIdAndUpdate(id, data, { new: true, runValidators: true });
+  }
 }
 
 export const productService = new ProductService();

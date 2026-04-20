@@ -3,7 +3,7 @@ import mongoose, { Schema, Document } from "mongoose";
 export interface IProduct extends Document {
   name: string;
   price: number;
-  category: "cosmetics" | "jewelry" | "perfumes" | "home-decor";
+  category: string;
   subCategory?: string;
   description: string;
   brand: string;
@@ -24,7 +24,7 @@ const ProductSchema: Schema = new Schema(
     category: {
       type: String,
       required: true,
-      enum: ["cosmetics", "jewelry", "perfumes", "home-decor"],
+      trim: true,
     },
     subCategory: { type: String, trim: true },
     description: { type: String, required: true },

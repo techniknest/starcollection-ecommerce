@@ -17,15 +17,26 @@ export default function AdminProductsViewPage() {
   // Filters
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [stockStatus, setStockStatus] = useState("all");
+  const [dbCategories, setDbCategories] = useState<any[]>([]);
 
   useEffect(() => {
     fetchProducts();
+    fetchCategories();
   }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const res = await fetch("/api/categories");
+      const data = await res.json();
+      if (Array.isArray(data)) setDbCategories(data);
+    } catch (err) {
+      console.error("Failed to fetch categories", err);
+    }
+  };
 
   useEffect(() => {
     applyFilters();
-  }, [searchTerm, selectedCategory, stockStatus, products]);
+  }, [searchTerm, selectedCategory, products]);
 
   const fetchProducts = async () => {
     try {
@@ -53,15 +64,6 @@ export default function AdminProductsViewPage() {
     // Category filter
     if (selectedCategory !== "all") {
       result = result.filter((p) => p.category === selectedCategory);
-    }
-
-    // Stock filter
-    if (stockStatus === "in-stock") {
-      result = result.filter((p) => p.stock > 0);
-    } else if (stockStatus === "low-stock") {
-      result = result.filter((p) => p.stock > 0 && p.stock < 10);
-    } else if (stockStatus === "out-of-stock") {
-      result = result.filter((p) => p.stock === 0);
     }
 
     setFilteredProducts(result);
@@ -110,7 +112,7 @@ export default function AdminProductsViewPage() {
             Back to Hub
           </button>
           <div className="flex items-center gap-3">
-            <h1 className="text-4xl lg:text-5xl font-bold tracking-tight">View Products</h1>
+            <h1 className="text-4xl lg:text-5xl font-bold tracking-tight">View Collection</h1>
             <div className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
               {products.length} Total
             </div>
@@ -149,40 +151,25 @@ export default function AdminProductsViewPage() {
               onChange={(e) => setSelectedCategory(e.target.value)}
             >
               <option value="all">All Categories</option>
-              <option value="cosmetics">Cosmetics</option>
-              <option value="jewelry">Jewelry</option>
-              <option value="perfumes">Perfumes</option>
-              <option value="home-decor">Home Decor</option>
+              {dbCategories.map(cat => (
+                <option key={cat._id} value={cat.name}>{cat.name}</option>
+              ))}
             </select>
           </div>
-
-          <div className="flex items-center gap-2 px-4 py-3 bg-dark/50 border border-white/10 rounded-2xl group focus-within:ring-2 focus-within:ring-gold/50 transition-all">
-            <div className="w-2 h-2 rounded-full bg-gold/50" />
-            <select
-              className="bg-transparent text-sm font-medium focus:outline-none cursor-pointer"
-              value={stockStatus}
-              onChange={(e) => setStockStatus(e.target.value)}
-            >
-              <option value="all">All Inventory</option>
-              <option value="in-stock">In Stock</option>
-              <option value="low-stock">Low Stock (&lt;10)</option>
-              <option value="out-of-stock">Out of Stock</option>
-            </select>
           </div>
-        </div>
       </section>
 
       {/* Main Table Area */}
       {isLoading ? (
         <div className="py-20 flex flex-col items-center justify-center space-y-4">
           <Loader2 className="w-10 h-10 text-gold animate-spin" />
-          <p className="text-xs font-bold uppercase tracking-widest text-gray-500">Syncing Inventory...</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-gray-500">Syncing Catalog...</p>
         </div>
       ) : filteredProducts.length === 0 ? (
         <div className="py-20 text-center border border-white/5 bg-white/5 rounded-[3rem] space-y-4">
           <p className="text-gray-400 italic">No products matched your current filters.</p>
           <button 
-            onClick={() => { setSearchTerm(""); setSelectedCategory("all"); setStockStatus("all"); }}
+            onClick={() => { setSearchTerm(""); setSelectedCategory("all"); }}
             className="text-gold text-sm font-bold hover:underline"
           >
             Clear all filters

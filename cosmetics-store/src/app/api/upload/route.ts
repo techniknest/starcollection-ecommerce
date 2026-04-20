@@ -27,8 +27,12 @@ export async function POST(req: NextRequest) {
             resource_type: "auto",
           },
           (error, result) => {
-            if (error) reject(error);
-            else resolve(result);
+            if (error) {
+              console.error("Cloudinary Stream Error:", error);
+              reject(error);
+            } else {
+              resolve(result);
+            }
           }
         );
         uploadStream.end(buffer);
@@ -42,9 +46,13 @@ export async function POST(req: NextRequest) {
         url: result.secure_url,
       });
     } catch (error: any) {
-      console.error("Upload Error:", error);
+      console.error("Upload Route Error:", error);
       return NextResponse.json(
-        { success: false, message: "Failed to upload image to Cloudinary" },
+        { 
+          success: false, 
+          message: error.message || "Failed to upload image to Cloudinary",
+          details: error
+        },
         { status: 500 }
       );
     }
