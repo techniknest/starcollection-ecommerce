@@ -39,6 +39,7 @@ export default function ProductCard({ product, promotions = [] }: ProductCardPro
           src={product.images[0] || "https://placehold.co/400x400?text=Product"}
           alt={product.name}
           fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
           className="object-cover transition-transform duration-1000 group-hover:scale-110 opacity-90 group-hover:opacity-100"
         />
         

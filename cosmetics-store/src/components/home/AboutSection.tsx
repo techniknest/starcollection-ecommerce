@@ -15,6 +15,7 @@ export default function AboutSection() {
                 src="/images/cosmtectics.png" 
                 alt="Luxury Lifestyle"
                 fill
+                sizes="(max-width: 768px) 100vw, 50vw"
                 className="object-cover transition-transform duration-1000 group-hover:scale-110 opacity-90 group-hover:opacity-100"
               />
               <div className="absolute inset-x-0 bottom-0 p-12 bg-gradient-to-t from-dark/90 to-transparent">

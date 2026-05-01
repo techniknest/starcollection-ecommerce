@@ -3,10 +3,10 @@ import connectToDatabase from "@/lib/db";
 import { Review } from "@/features/reviews/models/review.model";
 import { withAdminAuth } from "@/middleware/auth.middleware";
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   return withAdminAuth(req, async (req) => {
     try {
-      const { id } = params;
+      const { id } = await params;
       if (!id) {
         return NextResponse.json(
           { success: false, message: "Review ID is required" },
