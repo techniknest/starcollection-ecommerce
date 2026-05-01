@@ -81,7 +81,7 @@ export default function AddCategoryPage() {
 
     // Image is now optional
     try {
-      let uploadedUrl = formData.image || "";
+      let uploadedUrl = "";
       if (imageFile) {
         setIsUploading(true);
         uploadedUrl = await uploadImage(imageFile);

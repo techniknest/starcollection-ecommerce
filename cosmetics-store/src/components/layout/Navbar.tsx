@@ -120,7 +120,7 @@ export default function Navbar() {
                   
                   {/* Promo Column */}
                   <div className="relative rounded-2xl overflow-hidden glass-panel flex flex-col justify-end p-6 group/promo cursor-pointer h-full border border-white/10">
-                     <Image src="/images/cosmetics.png" alt="Promo" fill className="object-cover opacity-60 group-hover/promo:scale-105 transition-transform duration-700" />
+                     <Image src="/images/cosmetics.png" alt="Promo" fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover opacity-60 group-hover/promo:scale-105 transition-transform duration-700" />
                      <div className="absolute inset-0 bg-gradient-to-t from-dark via-dark/40 to-transparent" />
                      <div className="relative z-10 translate-y-2 group-hover/promo:translate-y-0 transition-transform duration-500">
                         <p className="text-gold text-[10px] font-bold uppercase tracking-widest">New Arrival</p>

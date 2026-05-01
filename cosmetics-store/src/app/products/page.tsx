@@ -7,21 +7,26 @@ import { Sparkles, Loader2 } from "lucide-react";
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<any[]>([]);
+  const [promotions, setPromotions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function fetchProducts() {
+    async function fetchData() {
       try {
-        const response = await productClientService.getAllProducts();
-        setProducts(response.data);
+        const [productRes, promoRes] = await Promise.all([
+          productClientService.getAllProducts(),
+          fetch("/api/promotions").then(r => r.json()),
+        ]);
+        setProducts(productRes.data);
+        if (promoRes.success) setPromotions(promoRes.data);
       } catch (err: any) {
         setError(err.message);
       } finally {
         setIsLoading(false);
       }
     }
-    fetchProducts();
+    fetchData();
   }, []);
 
   if (isLoading) {
@@ -61,7 +66,7 @@ export default function ProductsPage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {products.map((product) => (
-              <ProductCard key={product._id} product={product} />
+              <ProductCard key={product._id} product={product} promotions={promotions} />
             ))}
           </div>
         )}

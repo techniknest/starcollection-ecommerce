@@ -75,6 +75,7 @@ export default function CategorySection() {
                   src={cat.image || `https://placehold.co/600x400?text=${encodeURIComponent(cat.name)}`} 
                   alt={cat.name}
                   fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   className="object-contain transition-transform duration-1000 group-hover:scale-105 opacity-80 group-hover:opacity-100"
                 />
               </div>

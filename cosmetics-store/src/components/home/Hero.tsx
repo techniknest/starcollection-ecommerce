@@ -78,6 +78,7 @@ export default function Hero() {
                  alt="Premium Cosmetics" 
                  fill 
                  priority
+                 sizes="(max-width: 768px) 100vw, 50vw"
                  className="object-contain object-center scale-100 hover:scale-[1.02] transition-transform duration-1000 opacity-90"
                />
              </div>
